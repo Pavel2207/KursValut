@@ -1,0 +1,33 @@
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+from bs4 import BeautifulSoup
+import time
+import datetime
+
+df=pd.DataFrame({'Gods':[],'Time':[]}) # создаю DataFrame
+stop=0
+
+while stop<=300:
+    r=requests.get('https://www.coingecko.com/ru/%D0%9A%D1%80%D0%B8%D0%BF%D1%82%D0%BE%D0%B2%D0%B0%D0%BB%D1%8E%D1%82%D1%8B/gods-unchained/usd')
+    data=BeautifulSoup(r.content,'html.parser')
+    gods=data.find('span',class_='no-wrap')
+    kurs=str()
+    for i in gods:
+        kurs=kurs+(i.text[1:])
+    today = datetime.datetime.today()
+    t=(today.strftime("%Y%m%d%H%M.%S"))
+
+    kurs = float(kurs.replace(',', '.')) # замінюем кому крапкою щоб матплотліб розпізнала данні як число
+
+    df.loc[len(df.index)+1]=(kurs,t) # добавляю спарсение данние в конец таблици
+    print(df)
+    time.sleep(30)
+    stop=stop+30
+
+df['Gods']=pd.to_numeric(df['Gods'],errors='coerce') # преобразовиваем строчные данние датафрейма в числовие
+df['Time']=pd.to_numeric(df['Time'],errors='coerce')
+
+
+df.plot(x='Time',y='Gods')
+plt.show()
